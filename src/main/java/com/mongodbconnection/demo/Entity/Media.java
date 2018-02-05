@@ -5,13 +5,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 
 import javax.persistence.Id;
+import java.util.List;
 
 
 @Document(collection = "Media")
 public class Media {
 
     private Images images;
-    private String users_in_photo;
+    private List users_in_photo;
 
 
     public Media() {
@@ -25,13 +26,20 @@ public class Media {
         this.images = images;
     }
 
-    public String getUsers_in_photo() {
+    public List getUsers_in_photo() {
+        return users_in_photo;
+    }
+
+    public void setUsers_in_photo(List users_in_photo) {
+        this.users_in_photo = users_in_photo;
+    }
+    /*public String getUsers_in_photo() {
         return users_in_photo;
     }
 
     public void setUsers_in_photo(String users_in_photo) {
         this.users_in_photo = users_in_photo;
-    }
+    }*/
 
 
 }
