@@ -7,25 +7,24 @@ import javax.persistence.Id;
 
 @Document(collection = "Media")
 public class Media {
-    
-    @Id
-    private String images;
+
+    private LowResolution low_resolution;
     private String users_in_photo;
+
+    public Media(LowResolution low_resolution, String users_in_photo) {
+        this.low_resolution = low_resolution;
+        this.users_in_photo = users_in_photo;
+    }
 
     public Media() {
     }
 
-    public Media(String images, String users_in_photo) {
-        this.images = images;
-        this.users_in_photo = users_in_photo;
+    public LowResolution getLow_resolution() {
+        return low_resolution;
     }
 
-    public String getImages() {
-        return images;
-    }
-
-    public void setImages(String images) {
-        this.images = images;
+    public void setLow_resolution(LowResolution low_resolution) {
+        this.low_resolution = low_resolution;
     }
 
     public String getUsers_in_photo() {
