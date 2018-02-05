@@ -1,10 +1,7 @@
 package com.mongodbconnection.demo.Entity;
 
 public class LowResolution {
-    private String url;
-
-    public LowResolution() {
-    }
+    public String url;
 
     public LowResolution(String url) {
         this.url = url;
@@ -17,6 +14,5 @@ public class LowResolution {
     public void setUrl(String url) {
         this.url = url;
     }
-
 
 }
