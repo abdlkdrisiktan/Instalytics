@@ -1,4 +1,4 @@
-package com.mongodbconnection.demo.Entity;
+package com.mongodbconnection.demo.Model;
 
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,28 +12,27 @@ import java.util.List;
 public class Media {
 
     @Id
-    private String mediaId;
+    private String id;
+
     private Images images;
     private List users_in_photo;
 
-    public String getMediaId() {
-        return mediaId;
-    }
-
-    public void setMediaId(String mediaId) {
-        this.mediaId = mediaId;
-    }
-
-    public Media(String mediaId, Images images, List users_in_photo) {
-        this.mediaId = mediaId;
+    public Media(String id, Images images, List users_in_photo) {
+        this.id = id;
         this.images = images;
         this.users_in_photo = users_in_photo;
+
     }
 
     public Media() {
     }
-    public Media(String mediaId) {
-        this.mediaId= mediaId;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Images getImages() {
@@ -51,6 +50,4 @@ public class Media {
     public void setUsers_in_photo(List users_in_photo) {
         this.users_in_photo = users_in_photo;
     }
-
-
 }

@@ -1,4 +1,6 @@
-package com.mongodbconnection.demo.Entity;
+package com.mongodbconnection.demo.Model;
+
+import com.mongodbconnection.demo.Model.LowResolution;
 
 public class Images {
     private LowResolution low_resolution;

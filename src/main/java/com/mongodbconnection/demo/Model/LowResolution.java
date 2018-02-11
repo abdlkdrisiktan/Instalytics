@@ -1,4 +1,4 @@
-package com.mongodbconnection.demo.Entity;
+package com.mongodbconnection.demo.Model;
 
 public class LowResolution {
     public String url;
