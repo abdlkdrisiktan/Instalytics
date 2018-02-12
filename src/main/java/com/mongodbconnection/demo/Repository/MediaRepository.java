@@ -4,6 +4,8 @@ import com.mongodbconnection.demo.Model.Media;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
+import java.util.List;
+
 
 public interface MediaRepository extends MongoRepository<Media,String>,PagingAndSortingRepository<Media,String> {
 
@@ -11,6 +13,8 @@ public interface MediaRepository extends MongoRepository<Media,String>,PagingAnd
     List<Media> findByMediaId(String mediaId);*/
 
    Media findById(String id);
+
+   List<Media> findByMediaOwner(String mediaOwner);
 
 
 }

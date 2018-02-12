@@ -30,6 +30,7 @@ public class FaceAPIController {
     @Value("${face.attributes}")
     private String faceAttributes;
 
+
     @RequestMapping(method = RequestMethod.POST, value = "/detect")
     public String check (@ModelAttribute FaceAPIModel model){
         RestTemplate restTemplate = new RestTemplate();
