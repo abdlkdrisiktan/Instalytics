@@ -1,9 +1,11 @@
 package com.mongodbconnection.demo.Service;
 
 import com.mongodbconnection.demo.Config.FaceAPIEnv;
-import com.mongodbconnection.demo.Model.FaceAPIModel;
 import com.mongodbconnection.demo.Model.Media;
 import com.mongodbconnection.demo.Repository.MediaRepository;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -12,11 +14,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import sun.rmi.runtime.Log;
+
+import java.util.List;
 
 
 @Service
@@ -53,29 +55,84 @@ public class MediaServices {
         //Media'dan kişinin fotoğraf url ulaşıyor
         String body = "{ \"url\": \"" +  media.getImages().getLow_resolution().getUrl() + "\" }";
 
-        HttpEntity<String> entity = new HttpEntity<String>(body, headers);
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
         //Emotion api'nin kullanmış olduğu URL'e post atmak için tanımlıyoruz
         UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https")
                 .host("westus.api.cognitive.microsoft.com").path("/emotion/v1.0/recognize")
                 .buildAndExpand(faceAttributes);
-        System.out.println(faceAttributes);
 
         ResponseEntity<String> result = restTemplate.postForEntity(uriComponents.toString(),entity,String.class);
 
+        //Converting json response to string
         if (result !=null){
-            System.out.println("İf statment line 65");
-            System.out.println( media.toString());
-            return result.getBody();
-
+            try {
+                //--------------------------------------------------Burayı ilerde açacaksın System.out.println(media.toString());
+                JSONArray jsonArray = new JSONArray(result.getBody());
+                for (int i = 0; i<jsonArray.length(); i++){
+                    JSONObject jsonObject =jsonArray.getJSONObject(i);
+                    if (!jsonObject.isNull("scores")){
+                        JSONObject scores = jsonObject.getJSONObject("scores");
+                        if (!scores.isNull("happiness")){
+                            System.out.println("Line 84     "+scores.getString("happiness"));
+                            return scores.getString("happiness");
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return String.valueOf(0);
         }
         else {
+            //Controlling if media still exist
+            try {
+                JSONArray jsonArray = new JSONArray(result.getBody());
+                for (int i =0; i<jsonArray.length();i++){
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    if (jsonObject.isNull("scores")){
+                        JSONObject scores = jsonObject.getJSONObject("scores");
+                        if (scores.isNull("happiness")){
+                            System.out.println("Line    102     ");
+                            //İf media still exist then scores.happiness make '0'
+                            return String.valueOf(0);
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
             System.out.println("Else statment line 70");
-            return "Can not detecting Face";
+            return String.valueOf(0);
         }
     }
-}
 
+    public String findHappiestMoment(String mediaOwner){
+        //Getting all medialist by OwnerId
+        List<Media> mediaList = mediaRepository.findByMediaOwner(mediaOwner);
+        //Controlling media is exist
+        if (mediaList!=null){
+            double maxHappinesValue = Integer.MIN_VALUE;
+            for (int i= 0; i<mediaList.size(); i++){
+               /* System.out.println(mediaList.get(i).getMediaOwner()+"   "+mediaList.get(i).getId()+"    "
+                        +mediaList.get(i).getUsers_in_photo().size()+"     "+mediaList.get(i).getImages().getLow_resolution().getUrl());*/
+                 double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(mediaList.get(i).getId()));
+                 if (tempMediaEmotion   >   maxHappinesValue){
+                    maxHappinesValue= tempMediaEmotion;
+                    System.out.println("Line 114     maxHappinesValues is :       "+maxHappinesValue+"          "+i);
+                }
+            }
+            //No more media file and scores.happines is equal to maxHappinesValue
+            return String.valueOf(maxHappinesValue);
+        }
+        else {
+            //Media is not exist than happines value is '0'
+            return String.valueOf(0);
+        }
+
+    }
+}
          /*
           RequestMapping(method = RequestMethod.POST, value = "/detect")
     public String checkMediaEmotion(@ModelAttribute FaceAPIModel model,Media media){
