@@ -13,12 +13,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -114,22 +116,78 @@ public class MediaServices {
         //Controlling media is exist
         if (mediaList!=null){
             double maxHappinesValue = Integer.MIN_VALUE;
+            int tempId = 0;
             for (int i= 0; i<mediaList.size(); i++){
                /* System.out.println(mediaList.get(i).getMediaOwner()+"   "+mediaList.get(i).getId()+"    "
                         +mediaList.get(i).getUsers_in_photo().size()+"     "+mediaList.get(i).getImages().getLow_resolution().getUrl());*/
-                 double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(mediaList.get(i).getId()));
-                 if (tempMediaEmotion   >   maxHappinesValue){
-                    maxHappinesValue= tempMediaEmotion;
-                    System.out.println("Line 114     maxHappinesValues is :       "+maxHappinesValue+"          "+i);
-                }
+
+               if (i <= 19){
+                   double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(mediaList.get(i).getId()));
+                   if (tempMediaEmotion   >   maxHappinesValue){
+                       tempId=i;
+                       maxHappinesValue= tempMediaEmotion;
+                       System.out.println("Line 114     maxHappinesValues is :       "+maxHappinesValue+"          "+i);
+                   }
+               }
+               else if(i>19) {
+                   System.out.println("131 line");
+                   double tempMediaEmotion2 =Double.parseDouble(findHappiestMoment2(mediaOwner));
+                   if (tempMediaEmotion2>maxHappinesValue){
+                       maxHappinesValue=tempMediaEmotion2;
+                   }
+                    /* try {
+                       TimeUnit.SECONDS.sleep(65);
+
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   }*/
+
+               }
             }
             //No more media file and scores.happines is equal to maxHappinesValue
+            System.out.println("Last maxHappinesValues is   :       "+maxHappinesValue+ "       Id:    "+(tempId+1));
             return String.valueOf(maxHappinesValue);
         }
         else {
             //Media is not exist than happines value is '0'
             return String.valueOf(0);
         }
+    }
+
+   // @Scheduled(fixedRate = 40000 )
+    public String findHappiestMoment2(String mediaOwner){
+        try {
+            TimeUnit.SECONDS.sleep(65);
+            List<Media> mediaList = mediaRepository.findByMediaOwner(mediaOwner);
+            if (mediaList!=null){
+                double maxHappinesValue = Integer.MIN_VALUE;
+                int tempId=0;
+                if (mediaList.size()>19){
+                    for (int i =19; i<mediaList.size();i++){
+                        if (i<=40){
+                            System.out.println("line 168            "+  i);
+                            double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(mediaList.get(i).getId()));
+                            if (tempMediaEmotion   >   maxHappinesValue){
+                                tempId=i;
+                                maxHappinesValue= tempMediaEmotion;
+                                System.out.println("Line 155     maxHappinesValues is :       "+maxHappinesValue+"          "+i);
+                            }
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+                System.out.println("Last **maxHappinesValues** is   :       "+maxHappinesValue+ "       Id:    "+(tempId+1));
+                return String.valueOf(maxHappinesValue);
+            }
+            else {
+                return String.valueOf(0);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return String.valueOf(0);
 
     }
 }

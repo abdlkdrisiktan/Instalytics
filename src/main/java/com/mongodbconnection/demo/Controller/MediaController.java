@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -34,14 +35,14 @@ public class MediaController {
 
     public FaceAPIModel faceAPIModel;
 
-    @RequestMapping(method =  RequestMethod.GET , value = "/detectMediaEmotion")
+    @RequestMapping(method =  RequestMethod.GET , value = "detectMediaEmotion")
     @ResponseBody
     public String detectMediaEmotion (@RequestParam(value = "id")String id){
         return mediaServices.detectMediaEmotion(id);
         //"1077130043483313296_2111218668" örnek id ve "url" : "https://scontent.cdninstagram.com/t51.2885-15/s320x320/e35/11363830_1631745140433924_1838665717_n.jpg";
     }
 
-    @RequestMapping(method = RequestMethod.GET,value = "/detectHappiestMoment")
+    @RequestMapping(method = RequestMethod.GET,value = "detectHappiestMoment")
     @ResponseBody
     public String findHappiestMoment(@RequestParam(value = "mediaOwner")String mediaOwner){
         return mediaServices.findHappiestMoment(mediaOwner);
