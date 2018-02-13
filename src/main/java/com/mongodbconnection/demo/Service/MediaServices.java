@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.sql.Time;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -117,10 +118,33 @@ public class MediaServices {
         if (mediaList!=null){
             double maxHappinesValue = Integer.MIN_VALUE;
             int tempId = 0;
-            for (int i= 0; i<mediaList.size(); i++){
-               /* System.out.println(mediaList.get(i).getMediaOwner()+"   "+mediaList.get(i).getId()+"    "
-                        +mediaList.get(i).getUsers_in_photo().size()+"     "+mediaList.get(i).getImages().getLow_resolution().getUrl());*/
+            for (int i =0; i<mediaList.size();i++){
+               double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(mediaList.get(i).getId()));
+                System.out.println("line    123         maxHappinesValue    is  :      "+maxHappinesValue+  "           "+(i+1)+"   images :    "+mediaList.get(i).getImages().getLow_resolution().getUrl());
+               if (tempMediaEmotion > maxHappinesValue){
+                   tempId=i;
+                   maxHappinesValue = tempMediaEmotion;
+               }
+               else if ((i+1)%20==0){
+                    try {
+                        TimeUnit.SECONDS.sleep(65);
+                        System.out.println("Line 129 if statment");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+           /*    do {
+                   try {
+                       TimeUnit.SECONDS.sleep(2);
+                       System.out.println("Line 131 do while dongusu");
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   }
+               }while (((i+1)%20)==0);*/
 
+            }
+            /*
+            for (int i= 0; i<mediaList.size(); i++){
                if (i <= 19){
                    double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(mediaList.get(i).getId()));
                    if (tempMediaEmotion   >   maxHappinesValue){
@@ -134,18 +158,13 @@ public class MediaServices {
                    double tempMediaEmotion2 =Double.parseDouble(findHappiestMoment2(mediaOwner));
                    if (tempMediaEmotion2>maxHappinesValue){
                        maxHappinesValue=tempMediaEmotion2;
-                   }
-                    /* try {
-                       TimeUnit.SECONDS.sleep(65);
 
-                   } catch (InterruptedException e) {
-                       e.printStackTrace();
-                   }*/
+                   }
 
                }
-            }
+            }*/
             //No more media file and scores.happines is equal to maxHappinesValue
-            System.out.println("Last maxHappinesValues is   :       "+maxHappinesValue+ "       Id:    "+(tempId+1));
+            System.out.println("Last maxHappinesValues is   :       "+maxHappinesValue+ "       Id:    "+(tempId+1)+"   picture is  :   "+mediaList.get(tempId).getImages().getLow_resolution().getUrl());
             return String.valueOf(maxHappinesValue);
         }
         else {
