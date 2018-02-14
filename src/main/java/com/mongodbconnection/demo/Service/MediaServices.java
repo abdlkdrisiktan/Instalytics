@@ -97,6 +97,7 @@ public class MediaServices {
                         if (scores.isNull("happiness")){
                             System.out.println("Line    102     ");
                             //İf media still exist then scores.happiness make '0'
+
                             return String.valueOf(0);
                         }
                     }
