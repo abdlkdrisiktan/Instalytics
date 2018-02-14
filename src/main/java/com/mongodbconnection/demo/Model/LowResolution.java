@@ -1,7 +1,10 @@
 package com.mongodbconnection.demo.Model;
 
 public class LowResolution {
-    public String url;
+    private String url;
+
+    public LowResolution() {
+    }
 
     public LowResolution(String url) {
         this.url = url;
