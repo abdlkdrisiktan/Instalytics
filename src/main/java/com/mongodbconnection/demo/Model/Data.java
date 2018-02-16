@@ -3,13 +3,12 @@ package com.mongodbconnection.demo.Model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
-import javax.persistence.Id;
+import org.springframework.data.annotation.Id;
 
 
 public class Data {
 
-    //@Id
+    @Id
     private String id;
     private Images images;
 
