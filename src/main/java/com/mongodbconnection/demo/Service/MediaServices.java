@@ -8,10 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -33,6 +30,7 @@ public class MediaServices {
     @Value("${face.attributes}")
     private String faceAttributes;
 
+    @SuppressWarnings("Duplicates")
     public String detectMediaEmotion(String id ){
         Media media =  mediaRepository.findById(id);
 
@@ -49,19 +47,36 @@ public class MediaServices {
         //Çalışması için RestController gerekiyor
         //String attributes = model.getAttributes() != null ? model.getAttributes() : faceAttributes;
 
+        /*
         //Emotion api key- value ilişkisi ile tanıyor
         headers.set("Content-Type", "application/json");
         headers.set("Ocp-Apim-Subscription-Key", "5fa5004578ea4d79b6d9c921ad8b2d9c");
+        */
+
+        //Face api key- value ilişkisi ile tanıyor
+        headers.set("Content-Type", "application/json");
+        headers.set("Ocp-Apim-Subscription-Key", "c163c2a7e5d443ee891c193903ab36f6");
 
         //Media'dan kişinin fotoğraf url ulaşıyor
         String body = "{ \"url\": \"" +  media.getImages().getLow_resolution().getUrl() + "\" }";
 
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
+        /*
         //Emotion api'nin kullanmış olduğu URL'e post atmak için tanımlıyoruz
         UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https")
                 .host("westus.api.cognitive.microsoft.com").path("/emotion/v1.0/recognize")
                 .buildAndExpand(faceAttributes);
+        */
+
+        //Facce api'nin kullanmış olduğu URL'e post atmak için tanımlıyoruz
+        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https")
+                .host("westcentralus.api.cognitive.microsoft.com").path("/face/v1.0/detect")
+                .queryParam("returnFaceId", "true")
+                .queryParam("returnFaceLandmarks", "false")
+                .queryParam("returnFaceAttributes", "age,gender,smile,emotion").buildAndExpand();
+        //"https://westus.api.cognitive.microsoft.com/face/v1.0/detect"
+        //"https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect"
 
 
         ResponseEntity<String> result = restTemplate.postForEntity(uriComponents.toString(),entity,String.class);
@@ -69,16 +84,25 @@ public class MediaServices {
         //Converting json response to string
         if (result !=null){
             try {
-                //--------------------------------------------------Burayı ilerde açacaksın System.out.println(media.toString());
+              // System.out.println(media.toString());
                 JSONArray jsonArray = new JSONArray(result.getBody());
+                System.out.println("json array  : "+jsonArray.toString());
                 for (int i = 0; i<jsonArray.length(); i++){
                     JSONObject jsonObject =jsonArray.getJSONObject(i);
-                    if (!jsonObject.isNull("scores")){
-                        JSONObject scores = jsonObject.getJSONObject("scores");
-                        if (!scores.isNull("happiness")){
-                            System.out.println("Line 84   bir alt satırdaki yeni değeridir.  "+scores.getString("happiness")+"      images: "+media.getImages().getLow_resolution().getUrl());
-                            return scores.getString("happiness");
+                    if (!jsonObject.isNull("faceAttributes")){
+                        JSONObject scores = jsonObject.getJSONObject("faceAttributes");
+                        if (!scores.isNull("smile")){
+                            System.out.println("Line 84   bir alt satırdaki yeni değeridir.  "+scores.getString("smile")+"      images: "+media.getImages().getLow_resolution().getUrl());
+                            return scores.getString("smile");
                         }
+                        else if (!scores.isNull("emotion")){
+                            JSONObject  happines = scores.getJSONObject("emotion");
+                            if (!happines.isNull("happiness")){
+                                System.out.println("happines values is :    "+  happines.getString("happiness"));
+                            }
+
+                        }
+
                     }
                 }
             } catch (JSONException e) {
@@ -92,9 +116,9 @@ public class MediaServices {
                 JSONArray jsonArray = new JSONArray(result.getBody());
                 for (int i =0; i<jsonArray.length();i++){
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    if (jsonObject.isNull("scores")){
-                        JSONObject scores = jsonObject.getJSONObject("scores");
-                        if (scores.isNull("happiness")){
+                    if (jsonObject.isNull("faceAttributes")){
+                        JSONObject scores = jsonObject.getJSONObject("faceAttributes");
+                        if (scores.isNull("smile")){
                             System.out.println("Line    102     ");
                             //İf media still exist then scores.happiness make '0'
 
@@ -110,6 +134,47 @@ public class MediaServices {
             return String.valueOf(0);
         }
     }
+/*
+    public String detectMediaEmotionWithFaceApi(String id ){
+        Media media =  mediaRepository.findById(id);
+
+        //Veriyi convert işlemine sokuyor
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
+        //Alınacak emotion api gelen veri json formatında olduğu için
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        //Face api key- value ilişkisi ile tanıyor
+        headers.set("Content-Type", "application/json");
+        headers.set("Ocp-Apim-Subscription-Key", "c163c2a7e5d443ee891c193903ab36f6");
+
+        //Media'dan kişinin fotoğraf url ulaşıyor
+        String body = "{ \"url\": \"" +  media.getImages().getLow_resolution().getUrl() + "\" }";
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
+        //Facce api'nin kullanmış olduğu URL'e post atmak için tanımlıyoruz
+        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https")
+                .host("westcentralus.api.cognitive.microsoft.com").path("/face/v1.0/detect")
+                .queryParam("returnFaceId", "true")
+                .queryParam("returnFaceLandmarks", "false")
+                .queryParam("returnFaceAttributes", "age,gender,smile").buildAndExpand();
+        //"https://westus.api.cognitive.microsoft.com/face/v1.0/detect"
+        //"https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect"
+
+        ResponseEntity<FaceValues>result = restTemplate.exchange(uriComponents.toString(), HttpMethod.POST,entity,FaceValues.class);
+
+        FaceValues faceValues = result.getBody();
+
+        FaceAttributes faceAttributes= faceValues.getFaceAttributes();
+
+
+
+    return "asd";
+    }
+*/
 
     public String findHappiestMoment(String mediaOwner){
         //Getting all medialist by OwnerId

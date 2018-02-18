@@ -3,7 +3,7 @@ package com.mongodbconnection.demo.Service;
 
 import com.mongodbconnection.demo.Config.MyErrorHandler;
 import com.mongodbconnection.demo.Model.*;
-import com.mongodbconnection.demo.Model.HttpStatus;
+import com.mongodbconnection.demo.Model.FaceValues.FaceValues;
 import com.mongodbconnection.demo.Repository.UserRepository;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -209,14 +209,15 @@ public class UserService {
     }
 
     public String findHappiestMoment(List<Data> data) {
-        HappiestMoment happiestMomentsClass = new HappiestMoment();
         double maxHappinesValue = Integer.MIN_VALUE;
         if (data != null) {
             int tempId = 0;
 
             for (int i = 0; i < data.size(); i++) {
                 /*--------------------------------------------------------------*/
-                double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(data.get(i).getImages().getLow_resolution().getUrl()));
+                double tempMediaEmotion = Double.parseDouble(detectMediaEmotionWithFaceApi(data.get(i).getImages().getLow_resolution().getUrl()));
+                /*------------------------------------------------------------------*/
+                //double tempMediaEmotion = Double.parseDouble(detectMediaEmotion(data.get(i).getImages().getLow_resolution().getUrl()));
                 /*--------------------------------------------------------------*/
                 System.out.println("tempMediaEmotion values is :     " + tempMediaEmotion + "  id   :    " + (i + 1) + " images  :   " + data.get(i).getImages().getLow_resolution().getUrl());
                 if (tempMediaEmotion > maxHappinesValue) {
@@ -237,26 +238,93 @@ public class UserService {
                             .getImages()
                             .getLow_resolution()
                             .getUrl());
-         /* happiestMomentsClass.setHappiestValueURL(data.get(tempId).getImages().getLow_resolution().getUrl());
-          happiestMomentsClass.setHappiestValue(maxHappinesValue);
-          compareHappiestMoment(happiestMomentsClass);*/
 
         } else {
             return String.valueOf(0);
         }
+        String body = "{ \"name\":\"My Group\",\"userData\":\"User-provided data attached to the person group.\" }";
+
         return String.valueOf(maxHappinesValue);
+
     }
 
-    public HappiestMoment compareHappiestMoment(HappiestMoment happiestMoment) {
-        double maxHappiestMoment = Integer.MIN_VALUE;
-        HappiestMoment finalHappiestClass = new HappiestMoment();
-        HappiestMoment tempHappiestMomentClass = happiestMoment;
-        if (tempHappiestMomentClass.getHappiestValue() > happiestMoment.getHappiestValue()) {
-            maxHappiestMoment = tempHappiestMomentClass.getHappiestValue();
-            finalHappiestClass.setHappiestValue(maxHappiestMoment);
-            finalHappiestClass.setHappiestValueURL(tempHappiestMomentClass.getHappiestValueURL());
+    public String detectMediaEmotionWithFaceApi(String bodyComeByFindHappiestMoment){
+        //Veriyi convert işlemine sokuyor
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
+        //Alınacak emotion api gelen veri json formatında olduğu için
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        //Face api key- value ilişkisi ile tanıyor
+        headers.set("Content-Type", "application/json");
+        headers.set("Ocp-Apim-Subscription-Key", "c163c2a7e5d443ee891c193903ab36f6");
+
+        //Media'dan kişinin fotoğraf url ulaşıyor
+        String body = "{ \"url\": \"" + bodyComeByFindHappiestMoment + "\" }";
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        //Face api'nin kullanmış olduğu URL'e post atmak için tanımlıyoruz
+        //Facce api'nin kullanmış olduğu URL'e post atmak için tanımlıyoruz
+        UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https")
+                .host("westcentralus.api.cognitive.microsoft.com").path("/face/v1.0/detect")
+                .queryParam("returnFaceId", "true")
+                .queryParam("returnFaceLandmarks", "false")
+                .queryParam("returnFaceAttributes", "age,gender,smile").buildAndExpand();
+        //"https://westus.api.cognitive.microsoft.com/face/v1.0/detect"
+        //"https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect"
+
+        ResponseEntity<String> result = restTemplate.postForEntity(uriComponents.toString(),entity,String.class);
+
+
+        if (result.hasBody() && result.getBody() != null) {
+            try {
+                JSONArray jsonArray = new JSONArray(result.getBody());
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    if (!jsonObject.isNull("faceAttributes")) {
+                        JSONObject faceAttributesJsonObject = jsonObject.getJSONObject("faceAttributes");
+                        if (!faceAttributesJsonObject.isNull("smile")) {
+                            System.out.println("smile    :  " + faceAttributesJsonObject.getString("smile"));
+                            return faceAttributesJsonObject.getString("smile");
+                        }
+                        else if (!faceAttributesJsonObject.isNull("emotion")){
+                            JSONObject happines = faceAttributesJsonObject.getJSONObject("emotion");
+                            if (!happines.isNull("happiness")) {
+
+                                System.out.println("happines values is :    "+  happines.getString("happiness"));
+                            }
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return String.valueOf(0);
+        } else {
+            //Controlling if media still exist
+            try {
+                JSONArray jsonArray = new JSONArray(result.getBody());
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    if (jsonObject.isNull("faceAttributes")) {
+                        JSONObject scores = jsonObject.getJSONObject("faceAttributes");
+                        if (scores.isNull("smile")) {
+                            System.out.println("Line    102     ");
+                            //İf media still exist then scores.happiness make '0'
+                            return String.valueOf(0);
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Else statment line 70");
+            return String.valueOf(0);
         }
-        return finalHappiestClass;
+
+
     }
 }
 //örnek id 5261988411 veya 1931815659
