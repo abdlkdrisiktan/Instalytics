@@ -3,7 +3,6 @@ package com.mongodbconnection.demo.Service;
 
 import com.mongodbconnection.demo.Config.MyErrorHandler;
 import com.mongodbconnection.demo.Model.*;
-import com.mongodbconnection.demo.Model.FaceValues.FaceValues;
 import com.mongodbconnection.demo.Repository.UserRepository;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -89,13 +88,6 @@ public class UserService {
         //ResponseEntity<RequestMedia>  result = restTemplate.exchange(uriComponents.toString(),HttpMethod.GET,entity,RequestMedia.class);
 
         RequestMedia requestMedia = result.getBody();
-
-
-//        List<Data> data = new ArrayList<>(requestMedia.getData());
-
-//        ArrayList<Data> arrayList = new ArrayList<Data>();
-
-        //List<Data> data =requestMedia.getData();
 
         System.out.println("line 90     size    " + list.size());
 
@@ -242,8 +234,6 @@ public class UserService {
         } else {
             return String.valueOf(0);
         }
-        String body = "{ \"name\":\"My Group\",\"userData\":\"User-provided data attached to the person group.\" }";
-
         return String.valueOf(maxHappinesValue);
 
     }
