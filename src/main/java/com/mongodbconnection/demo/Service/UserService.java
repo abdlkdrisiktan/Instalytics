@@ -3,18 +3,22 @@ package com.mongodbconnection.demo.Service;
 
 import com.mongodbconnection.demo.Config.MyErrorHandler;
 import com.mongodbconnection.demo.Model.*;
+import com.mongodbconnection.demo.Repository.CognitiveServiceRepository;
 import com.mongodbconnection.demo.Repository.UserRepository;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +33,18 @@ public class UserService {
     UserRepository userRepository;
 
     @Autowired
+    CognitiveServiceRepository cognitiveServiceRepository;
+
+    @Autowired
     MediaServices mediaServices;
 
     @Value("${face.attributes}")
     private String faceAttributes;
 
 
-    public String getUserAccesTokenFromId(String userId, String userRequestId, String url, List<Data> list) {
+    public MaxHappinesValues getUserAccesTokenFromId(String userId, String userRequestId, String url, List<Data> list,CognitiveServiceMediaStatus cognitiveServiceMediaStatus) {
+
+        MaxHappinesValues maxHappinesValues = new MaxHappinesValues();
 
         int counter = 0;
 
@@ -72,11 +81,18 @@ public class UserService {
                     .path(accesToken)
                     .build();
             url = uriComponents.toString();
-            System.out.println("Line 70 UserServices    " + uriComponents.toString());
         }
 
         if (list == null)
             list = new ArrayList<>();
+
+        if (cognitiveServiceMediaStatus ==null){
+            cognitiveServiceMediaStatus = new CognitiveServiceMediaStatus();
+            cognitiveServiceMediaStatus.setId(userId);
+            cognitiveServiceMediaStatus.setUserRequestId(userRequestId);
+            cognitiveServiceMediaStatus.setStatus("Updating");
+            cognitiveServiceRepository.save(cognitiveServiceMediaStatus);
+        }
         //https://api.instagram.com/v1/users/1083659435/media/recent/?access_token=1083659435.615654b.778eafddc4594ab59a949f9cefd0c2ba
         // https://api.instagram.com/v1/users/1083659435/media/recent?access_token=1083659435.615654b.778eafddc4594ab59a949f9cefd0c2ba---------&max_id=1542093674241016697_1083659435
 
@@ -89,47 +105,49 @@ public class UserService {
 
         RequestMedia requestMedia = result.getBody();
 
-        System.out.println("line 90     size    " + list.size());
-
         Pagination pagination = requestMedia.getPagination();
 
         System.out.println(requestMedia.toString());
 
+        //200 'den başka gelecek herhangi bir hata kodu için hata üretiyoruz
+        //Kullanıcı profili kapalı bir kullanıcının resmini isterse o zaman getiremiyecek ve hata dondurmesı gerekecek
         if (requestMedia.getMeta().getCode() != 200) {
 
             System.out.println("Line 66   :   " + requestMedia.getMeta().getCode() + "  " + requestMedia.getMeta().getError_type() + "  " + requestMedia.getMeta().getError_message());
-            return "Error message  :   " + requestMedia.getMeta().getError_message() + "Error message Type   :   " + requestMedia.getMeta().getError_type();
-            //return result.stat(HttpStatus.BAD_REQUEST).toString();
+            return maxHappinesValues;
         } else {
+            MaxHappinesValues tempMaxHappinesValues = new MaxHappinesValues();
+            //Bütün dataları liste yükledikten sonra cognitive services göndereceğiz
             list.addAll(requestMedia.getData());
-            //data.addAll(requestMedia.getData());
-            System.out.println("line 106 and size   " + list.size());
-            // findHappiestMoment(data);***********************
-            // System.out.println("Line 103 and findHappiest Moment data : "+tempHappinesValue);
+
+            //NextUrl kontrol ediyoruz ve listenin size'ı 100 den kucukse verileri işlecek
             System.out.println("Line 99 " + pagination.getNext_url());
 
             if (pagination.getNext_url() != null && list.size()<100) {
                 if (pagination.getNext_url() != null) {
-                    String nextUrl = pagination.getNext_url();
-                    // data.addAll(requestMedia.getData());
-                    //arrayList.addAll(data);
                     System.out.println("/********************************************************************************************/");
-                    getUserAccesTokenFromId(userId, userRequestId, nextUrl, list);
+                    String nextUrl = pagination.getNext_url();
+                    maxHappinesValues=getUserAccesTokenFromId(userId, userRequestId, nextUrl, list,cognitiveServiceMediaStatus);
+                    maxHappinesValues.setCognitiveServiceMediaStatus(cognitiveServiceMediaStatus);
+                    return maxHappinesValues;
                 } else {
-                    System.out.println("/-----------------------------  -----------------------------------------------------------------/");
-                    System.out.println("Line  118 there is no URL");
+                    System.out.println("/-----------------------------  NextURL not exist -----------------------------------------------------------------/");
+                    return maxHappinesValues;
                 }
-                //restTemplate.exchange(url,HttpMethod.GET,entity,RequestMedia.class);
-                // getUserAccesTokenFromId(userId,userRequestId,nextUrl);
-            } else {
-                findHappiestMoment(list);
-                System.out.println("************************    Next URL yoktur url yoktur ***************************");
             }
-
+            else {
+                System.out.println("************************    Next URL not exist anymore ***************************");
+                maxHappinesValues= findHappiestMoment(list);
+                CognitiveServiceMediaStatus mediaStatus = cognitiveServiceRepository.findOne(userId);
+                mediaStatus.setStatus("Done");
+                cognitiveServiceRepository.save(mediaStatus);
+                maxHappinesValues.setCognitiveServiceMediaStatus(mediaStatus);
+                //tam 20 'de 65 saniye bekliyor onun onune geçmek için 65 sanıye bekletme   *! önemli
+                return maxHappinesValues;
+            }
         }
-
-        System.out.println("asdasda:    " + list.size());
-        return "Code    :   " + requestMedia.getMeta().getCode();
+         // return "Code    :   " + requestMedia.getMeta().getCode();
+         //   return maxHappinesValues;
     }
 
     public String detectMediaEmotion(String bodyComeByFindHappiestMoment) {
@@ -200,7 +218,8 @@ public class UserService {
         }
     }
 
-    public String findHappiestMoment(List<Data> data) {
+    public MaxHappinesValues findHappiestMoment(List<Data> data) {
+        MaxHappinesValues maxHappinesValues = new MaxHappinesValues();
         double maxHappinesValue = Integer.MIN_VALUE;
         if (data != null) {
             int tempId = 0;
@@ -230,11 +249,14 @@ public class UserService {
                             .getImages()
                             .getLow_resolution()
                             .getUrl());
-
+            maxHappinesValues.setHappinesValue(maxHappinesValue);
+            maxHappinesValues.setMaxHappinesValueId((tempId+1));
+            maxHappinesValues.setMaxHappinesValueUrl(data.get(tempId).getImages().getLow_resolution().getUrl());
+                return maxHappinesValues;
         } else {
-            return String.valueOf(0);
+            return maxHappinesValues;
         }
-        return String.valueOf(maxHappinesValue);
+        //return maxHappinesValues;
 
     }
 
@@ -316,6 +338,12 @@ public class UserService {
 
 
     }
+
+
 }
 //örnek id 5261988411 veya 1931815659
 //örnek id  32 size 1083659435
+
+//ilk once veritabnına gidip status  updates olup olmadığını kontrol edecegız dahasonrasından aseknron olarak istek yapacak
+//ıkı ıd veri tabanına kaydet
+

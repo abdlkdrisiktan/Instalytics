@@ -1,5 +1,6 @@
 package com.mongodbconnection.demo.Controller;
 
+import com.mongodbconnection.demo.Model.MaxHappinesValues;
 import com.mongodbconnection.demo.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,8 +20,8 @@ public class UserController {
 
     @RequestMapping(method = RequestMethod.GET,value = "getUserAccesTokenFromId")
     @ResponseBody
-    public String getUserAccesTokenFromId(@RequestParam(value = "userId") String userId, @RequestParam(value = "userRequestId")String userRequestId ){
-        return userService.getUserAccesTokenFromId(userId,userRequestId,null,null);
+    public MaxHappinesValues getUserAccesTokenFromId(@RequestParam(value = "userId") String userId, @RequestParam(value = "userRequestId")String userRequestId ){
+        return userService.getUserAccesTokenFromId(userId,userRequestId,null,null,null);
     }
 
 }
