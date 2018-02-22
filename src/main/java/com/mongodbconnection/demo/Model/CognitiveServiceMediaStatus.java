@@ -6,9 +6,18 @@ import javax.persistence.Id;
 
 @Document(collection = "CognitiveServiceMediaStatus")
 public class CognitiveServiceMediaStatus {
+
     private String id;
-    private String userRequestId;
     private String status;
+    private String maxHappinesValueUrl;
+    private String maxHappinesValue;
+
+    public CognitiveServiceMediaStatus(String id, String status, String maxHappinesValueUrl, String maxHappinesValue) {
+        this.id = id;
+        this.status = status;
+        this.maxHappinesValueUrl = maxHappinesValueUrl;
+        this.maxHappinesValue = maxHappinesValue;
+    }
 
     public String getId() {
         return id;
@@ -16,14 +25,6 @@ public class CognitiveServiceMediaStatus {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getUserRequestId() {
-        return userRequestId;
-    }
-
-    public void setUserRequestId(String userRequestId) {
-        this.userRequestId = userRequestId;
     }
 
     public String getStatus() {
@@ -34,12 +35,22 @@ public class CognitiveServiceMediaStatus {
         this.status = status;
     }
 
-    public CognitiveServiceMediaStatus() {
+    public String getMaxHappinesValueUrl() {
+        return maxHappinesValueUrl;
     }
 
-    public CognitiveServiceMediaStatus(String id, String userRequestId, String status) {
-        this.id = id;
-        this.userRequestId = userRequestId;
-        this.status = status;
+    public void setMaxHappinesValueUrl(String maxHappinesValueUrl) {
+        this.maxHappinesValueUrl = maxHappinesValueUrl;
+    }
+
+    public String getMaxHappinesValue() {
+        return maxHappinesValue;
+    }
+
+    public void setMaxHappinesValue(String maxHappinesValue) {
+        this.maxHappinesValue = maxHappinesValue;
+    }
+
+    public CognitiveServiceMediaStatus() {
     }
 }

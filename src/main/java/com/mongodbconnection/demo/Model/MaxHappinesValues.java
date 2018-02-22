@@ -4,20 +4,20 @@ public class MaxHappinesValues {
     private double happinesValue;
     private int maxHappinesValueId;
     private String maxHappinesValueUrl;
-    private CognitiveServiceMediaStatus cognitiveServiceMediaStatus;
+    private String cognitiveServiceMediaStatus;
 
-    public MaxHappinesValues(double happinesValue, int maxHappinesValueId, String maxHappinesValueUrl, CognitiveServiceMediaStatus cognitiveServiceMediaStatus) {
+    public MaxHappinesValues(double happinesValue, int maxHappinesValueId, String maxHappinesValueUrl, String cognitiveServiceMediaStatus) {
         this.happinesValue = happinesValue;
         this.maxHappinesValueId = maxHappinesValueId;
         this.maxHappinesValueUrl = maxHappinesValueUrl;
         this.cognitiveServiceMediaStatus = cognitiveServiceMediaStatus;
     }
 
-    public CognitiveServiceMediaStatus getCognitiveServiceMediaStatus() {
+    public String getCognitiveServiceMediaStatus() {
         return cognitiveServiceMediaStatus;
     }
 
-    public void setCognitiveServiceMediaStatus(CognitiveServiceMediaStatus cognitiveServiceMediaStatus) {
+    public void setCognitiveServiceMediaStatus(String cognitiveServiceMediaStatus) {
         this.cognitiveServiceMediaStatus = cognitiveServiceMediaStatus;
     }
 
