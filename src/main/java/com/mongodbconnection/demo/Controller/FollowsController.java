@@ -20,4 +20,9 @@ public class FollowsController {
     public List<FollowsData> getAllFollowsUser (@RequestParam(value = "userId") String userId){
         return  followsService.getAllFollowsUser(userId);
     }
+    @RequestMapping(value = "deleteUserById",method = RequestMethod.GET)
+    @ResponseBody
+    public String deleteUserById (@RequestParam(value = "userId")String userId,@RequestParam(value = "requestId")String requestId){
+        return followsService.deleteUserById(userId,requestId);
+    }
 }

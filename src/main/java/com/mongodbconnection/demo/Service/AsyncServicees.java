@@ -49,7 +49,7 @@ public class AsyncServicees {
         //Kullanıcının kendi bilgileri
         User ownUser = userRepository.findOne(userId);
         //İstediği kullanıcının bilgileri
-        User requestUser = userRepository.findOne(userRequestId);
+       // User requestUser = userRepository.findOne(userRequestId);
 
         //Veriyi convert işlemine sokuyor
         RestTemplate restTemplate = new RestTemplate();
@@ -63,17 +63,20 @@ public class AsyncServicees {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         //Resmini istediği kullanıcının id 'si
-        String user_id = requestUser.getId();
+
+       // String user_id = requestUser.getId();
+
         //Programı kullanan kullanıcınn kendi accesToken'ı
         String accesToken = ownUser.getAccess_token();
         //https://api.instagram.com/v1/users/{user-id}/media/recent/?access_token=ACCESS-TOKE           =default URL
+        //https://api.instagram.com/v1/users/6895752190/media/recent/?access_token=1949294863.615654b.041e8da34c8f4bc482d3369bb92ffc34
         //https://api.instagram.com/v1/users/1083659435/media/recent/?access_token=1083659435.615654b.778eafddc4594ab59a949f9cefd0c2ba
         //https://api.instagram.com/v1/users/288633852/media/recent/?access_token=1949294863.615654b.041e8da34c8f4bc482d3369bb92ffc34
         if (url == null) {
             UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https")
                     .host("api.instagram.com")
                     .path("/v1/users/")
-                    .path(user_id)
+                    .path(userRequestId)
                     .path("/media/recent/")
                     .path("?access_token=")
                     .path(accesToken)

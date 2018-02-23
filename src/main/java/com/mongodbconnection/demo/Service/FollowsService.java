@@ -22,5 +22,9 @@ public class FollowsService {
         followsData = follows.getData();
         return followsData;
     }
+    public String deleteUserById(String userId,String requestId){
+        followsRepository.delete((userId+requestId));
+        return "deleted";
+    }
 
 }
