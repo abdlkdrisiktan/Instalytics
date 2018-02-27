@@ -3,21 +3,29 @@ package com.mongodbconnection.demo.Model;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Id;
+import java.util.List;
 
 @Document(collection = "CognitiveServiceMediaStatus")
 public class CognitiveServiceMediaStatus {
 
     private String id;
     private String status;
-    private String maxHappinesValueUrl;
-    private String maxHappinesValue;
+    private List<MaxHappinesValues> maxHappinesValues;
 
-    public CognitiveServiceMediaStatus(String id, String status, String maxHappinesValueUrl, String maxHappinesValue) {
+    public CognitiveServiceMediaStatus(String id, String status, List<MaxHappinesValues> maxHappinesValues) {
         this.id = id;
         this.status = status;
-        this.maxHappinesValueUrl = maxHappinesValueUrl;
-        this.maxHappinesValue = maxHappinesValue;
+        this.maxHappinesValues = maxHappinesValues;
     }
+
+    public List<MaxHappinesValues> getMaxHappinesValues() {
+        return maxHappinesValues;
+    }
+
+    public void setMaxHappinesValues(List<MaxHappinesValues> maxHappinesValues) {
+        this.maxHappinesValues = maxHappinesValues;
+    }
+
 
     public String getId() {
         return id;
@@ -33,22 +41,6 @@ public class CognitiveServiceMediaStatus {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getMaxHappinesValueUrl() {
-        return maxHappinesValueUrl;
-    }
-
-    public void setMaxHappinesValueUrl(String maxHappinesValueUrl) {
-        this.maxHappinesValueUrl = maxHappinesValueUrl;
-    }
-
-    public String getMaxHappinesValue() {
-        return maxHappinesValue;
-    }
-
-    public void setMaxHappinesValue(String maxHappinesValue) {
-        this.maxHappinesValue = maxHappinesValue;
     }
 
     public CognitiveServiceMediaStatus() {

@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -38,13 +39,13 @@ public class AsyncServicees {
     @Value("${face.attributes}")
     public String faceAttributes;
 
-    //@Async("asyncExecutor")
-
-    //@Transactional
     @Async
     public void getUserAccesTokenFromId(String userId, String userRequestId, String url, List<Data> list, CognitiveServiceMediaStatus cognitiveServiceMediaStatus) {
         System.out.println("DENEME");
-        MaxHappinesValues maxHappinesValues = new MaxHappinesValues();
+//        MaxHappinesValues maxHappinesValues = new MaxHappinesValues();
+        List<MaxHappinesValues> maxHappinesValues = new ArrayList<>();
+
+        List<MaxHappinesValues> tempValueList = new ArrayList<>();
 
         //Kullanıcının kendi bilgileri
         User ownUser = userRepository.findOne(userId);
@@ -69,7 +70,6 @@ public class AsyncServicees {
         //Programı kullanan kullanıcınn kendi accesToken'ı
         String accesToken = ownUser.getAccess_token();
         //https://api.instagram.com/v1/users/{user-id}/media/recent/?access_token=ACCESS-TOKE           =default URL
-        //https://api.instagram.com/v1/users/6895752190/media/recent/?access_token=1949294863.615654b.041e8da34c8f4bc482d3369bb92ffc34
         //https://api.instagram.com/v1/users/1083659435/media/recent/?access_token=1083659435.615654b.778eafddc4594ab59a949f9cefd0c2ba
         //https://api.instagram.com/v1/users/288633852/media/recent/?access_token=1949294863.615654b.041e8da34c8f4bc482d3369bb92ffc34
         if (url == null) {
@@ -149,15 +149,33 @@ public class AsyncServicees {
                 }
             } else {
                 System.out.println("************************    Next URL not exist anymore ***************************");
+
+
                 maxHappinesValues = findHappiestMoment(list);
                 //findHappiestMoment(list);
                 String totalId = userId + userRequestId;
                 CognitiveServiceMediaStatus mediaStatus = cognitiveServiceRepository.findOne(totalId);
                 mediaStatus.setId(totalId);
                 mediaStatus.setStatus("Done");
-                mediaStatus.setMaxHappinesValueUrl(maxHappinesValues.getMaxHappinesValueUrl());
-                mediaStatus.setMaxHappinesValue(String.valueOf(maxHappinesValues.getHappinesValue()));
+                mediaStatus.setMaxHappinesValues(maxHappinesValues);
+//                mediaStatus.setMaxHappinesValueUrl(maxHappinesValues.getMaxHappinesValueUrl());
+//                mediaStatus.setMaxHappinesValue(String.valueOf(maxHappinesValues.getHappinesValue()));
                 cognitiveServiceRepository.save(mediaStatus);
+
+//
+//                tempValueList = findHappiestMoment(list);
+//                String totalId = userId + userRequestId;
+//                ServiceMediaStatus status = serviceMediaStatusRepository.findOne(totalId);
+//                status.setStatus("Done");
+//                status.setMaxHappinesValues(tempValueList);
+//                serviceMediaStatusRepository.save(status);
+
+
+
+
+
+
+
                 //asenkron olacak ve aynı sınıf içerisinde olmuyor ayrıca asyn diye service açacaksın service orada autowired edeceksin daha sonra
                 //o clasın içerisinde istekleri yapacaksın sadece
                 //application oraya async yazsak yeterli
@@ -173,8 +191,9 @@ public class AsyncServicees {
     }
 
     //@Async
-    public MaxHappinesValues findHappiestMoment(List<Data> data) {
+    public List<MaxHappinesValues> findHappiestMoment(List<Data> data) {
         MaxHappinesValues maxHappinesValues = new MaxHappinesValues();
+        List<MaxHappinesValues> valuesList = new ArrayList<>();
         double maxHappinesValue = Integer.MIN_VALUE;
         if (data != null) {
             int tempId = 0;
@@ -196,21 +215,38 @@ public class AsyncServicees {
                         e.printStackTrace();
                     }
                 }
+                valuesList.add(new MaxHappinesValues(tempMediaEmotion,i,data.get(i).getImages().getLow_resolution().getUrl()));
+
             }
+            valuesList.sort(Comparator.comparingDouble(MaxHappinesValues::getHappinesValue).reversed());
+            List<MaxHappinesValues> tempValueList = new ArrayList<>();
+            if (tempValueList.size()>2){
+                tempValueList = valuesList.subList(0,3);
+            }else {
+                tempValueList = valuesList;
+            }
+
+
+            for (MaxHappinesValues happinesValues: tempValueList){
+                System.out.println(happinesValues.getHappinesValue()+"  "+  happinesValues.getMaxHappinesValueUrl());
+            }
+
             System.out.println("Last maxHappines value is : " + maxHappinesValue + "   Id  :   " + (tempId + 1) +
                     "    pictures    :   " +
                     data
                             .get(tempId)
                             .getImages()
                             .getLow_resolution()
-                            .getUrl() + " Status is " + maxHappinesValues.getCognitiveServiceMediaStatus());
+                            .getUrl() );
             maxHappinesValues.setHappinesValue(maxHappinesValue);
             maxHappinesValues.setMaxHappinesValueId((tempId + 1));
             maxHappinesValues.setMaxHappinesValueUrl(data.get(tempId).getImages().getLow_resolution().getUrl());
 
-            return maxHappinesValues;
+//            return maxHappinesValues;
+            return valuesList;
         } else {
-            return maxHappinesValues;
+//            return maxHappinesValues;
+            return valuesList;
         }
         //return maxHappinesValues;
 

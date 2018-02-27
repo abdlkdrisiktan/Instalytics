@@ -6,11 +6,10 @@ public class MaxHappinesValues {
     private String maxHappinesValueUrl;
     private String cognitiveServiceMediaStatus;
 
-    public MaxHappinesValues(double happinesValue, int maxHappinesValueId, String maxHappinesValueUrl, String cognitiveServiceMediaStatus) {
+    public MaxHappinesValues(double happinesValue, int maxHappinesValueId, String maxHappinesValueUrl) {
         this.happinesValue = happinesValue;
         this.maxHappinesValueId = maxHappinesValueId;
         this.maxHappinesValueUrl = maxHappinesValueUrl;
-        this.cognitiveServiceMediaStatus = cognitiveServiceMediaStatus;
     }
 
     public String getCognitiveServiceMediaStatus() {
